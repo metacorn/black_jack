@@ -9,15 +9,15 @@ class Interface
     puts "#{name.upcase}:"
   end
 
-  def show_hand(player, *dealer_shows=false)
+  def show_hand(player)
     print "Cards:"
-    player.hand.each do |card|
-      if (player.name != "Dealer") || dealer_shows
-        print " #{card[:suit]}#{card[:value]}"
-      else
-        print " ##"
-      end
-    end
+    player.hand.each { |card| print " #{card[:suit]}#{card[:value]}" }
+    puts "."
+  end
+
+  def show_hidden_hand(player)
+    print "Cards:"
+    player.hand.each { |card| print " ##" }
     puts "."
   end
 
@@ -40,11 +40,13 @@ class Interface
   end
 
   def show_history(history)
+    puts "ACTIVITY:" if !history.empty?
     history.each { |action| puts action}
+    puts "\n" if !history.empty?
   end
 
   def show_menu(menu)
-    puts "\nChoose your action (put the number):"
+    puts "Choose your action (put the number):"
     menu.each_with_index do |item, index|
       puts "#{index + 1}. #{item[0].to_s.capitalize}."
     end

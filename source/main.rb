@@ -18,6 +18,7 @@ class Main
     ['pass', 'player_pass'],
     ['add card', 'player_add_card'],
     ['show cards', 'show_cards'],
+    ['exit', 'exit']
   ].freeze
 
   def new_game
@@ -44,19 +45,24 @@ class Main
     deal_card(@deck, player)
   end
 
-  def show_table(dealer_shows)
+  def show_table
     system "clear"
-    show_dealer_block(dealer_shows)
+    show_dealer_block
     show_player_block
     show_bank_block
     show_history_block
     show_action_block
   end
 
-  def show_dealer_block(dealer_shows)
+  def show_dealer_block
     @interface.show_name(@dealer)
-    @interface.show_hand(@dealer, dealer_shows)
+    if @dealer_card_visibility == false
+      @interface.show_hidden_hand(@dealer)
+    else
+      @interface.show_hand(@dealer)
+    end
     @interface.show_stack(@dealer)
+    @interface.show_points(@dealer) if @dealer_card_visibility == true
     @interface.show_line
   end
 
@@ -89,28 +95,33 @@ class Main
   end
 
   def dealing
-    @bank = 0
-    @bank += @dealer.bet
-    @bank += @player.bet
-    2.times { deal_card(@dealer) }
-    2.times { deal_card(@player) }
     @history = []
-    dealer_shows = false
-    show_table(dealer_shows)
+    @bank = 0
+    @dealer.betting
+    @bank += @dealer.bet
+    @history << "Dealer bet $#{@dealer.bet}."
+    @player.betting
+    @bank += @player.bet
+    @history << "#{@player.name} bet $#{@player.bet}."
+    2.times { deal_card(@dealer) }
+    @history << "Dealer got 2 cards."
+    2.times { deal_card(@player) }
+    @history << "#{@player.name} got 2 cards."
+    @dealer_card_visibility = false
+    show_table
   end
 
   def player_pass
-    dealer_action
     @history << "#{@player.name} passed."
-    dealer_shows = false
-    show_table(dealer_shows)
+    dealer_action
+    show_table
   end
 
   def player_add_card
     deal_card(@player)
     @history << "#{@player.name} got a card."
-    dealer_shows = false
-    show_table(dealer_shows)
+    check_cards
+    show_table
   end
 
   def dealer_action
@@ -123,19 +134,47 @@ class Main
 
   def dealer_pass
     @history << "Dealer passed."
-    dealer_shows = false
-    show_table(dealer_shows)
+    show_table
   end
 
   def dealer_add_card
     deal_card(@dealer)
     @history << "Dealer got a card."
-    dealer_shows = false
-    show_table(dealer_shows)
+    check_cards
+    show_table
+  end
+
+  def check_cards
+    show_cards if @player.hand.size == 3 && @dealer.hand.size == 3
   end
 
   def show_cards
-    dealer_shows = true
-    show_table(dealer_shows)
+    @history << "#{@player.name} showed cards."
+    @dealer_card_visibility = true
+    define_dealing_winner
+    show_table
   end
+
+  def define_dealing_winner
+    if @player.get_points > 21 && @dealer.get_points < 21
+      player_won(@dealer)
+    elsif @player.get_points > @dealer.get_points
+      @player.take_bank(@bank)
+      @history << "#{@player.name} won $#{@bank}!"
+    elsif @player.get_points < @dealer.get_points
+      @dealer.take_bank(@bank)
+      @history << "Dealer won $#{@bank}!"
+    else
+      @history << "Draw! Players shared the bank ($#{@bank})."
+      @player.share_bank(@bank)
+      @dealer.share_bank(@bank)
+    end
+  end
+
+  def player_won(player)
+    player.take_bank(@bank)
+    @history << "#{player.name} won $#{@bank}!"
+  end
+
+
 end
