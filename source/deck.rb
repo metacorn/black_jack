@@ -3,6 +3,8 @@ class Deck
     attr_reader :values, :suits
   end
 
+  attr_reader :cards
+
   @suits = ["♠", "♥", "♣", "♦"]
   @values = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
 
@@ -23,7 +25,7 @@ class Deck
     @cards.size
   end
 
-  def deal
+  def remove_card
     @cards.delete_at(0)
   end
 end
