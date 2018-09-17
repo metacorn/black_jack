@@ -1,22 +1,30 @@
 class Player
-  attr_reader :name, :stack, :hand, :points, :bet
+  attr_reader :name, :stack, :hand, :bet
 
 
   def initialize(name)
     @name = name
-    @stack = 100
     @hand = []
     @bet = 10
+  end
+
+  def initial_stack
+    @stack = 100
+  end
+
+  def hand_out(out)
+    @hand.each { |card| out << card }
+    @hand = []
   end
 
   def get_card(card)
     @hand << card
   end
 
-  def get_points
+  def check_points
     @points = 0
     @points += points_non_a
-    @points += points_a(points)
+    @points += points_a(@points)
   end
 
   def points_non_a
@@ -50,15 +58,19 @@ class Player
     points_a
   end
 
-  def betting
+  def make_bet
     @stack -= @bet
   end
 
-  def take_bank(bank)
+  def get_bank(bank)
     @stack += bank
   end
 
   def share_bank(bank)
     @stack += bank / 2
+  end
+
+  def can_add?
+    @hand.size == 2
   end
 end

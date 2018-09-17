@@ -18,14 +18,22 @@ class Deck
         @cards << card
       end
     end
-    @cards.sort_by! { rand }
+    shuffle
   end
 
   def size
     @cards.size
   end
 
+  def shuffle
+    @cards.sort_by! { rand }
+  end
+
+  def add_card(card)
+    @cards << card
+  end
+
   def remove_card
     @cards.delete_at(0)
-  end
+  end  
 end
