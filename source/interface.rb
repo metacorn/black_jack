@@ -27,7 +27,7 @@ class Interface
   end
 
   def show_points(player)
-    points = player.get_points
+    points = player.check_points
     puts "Points: #{points}."
   end
 

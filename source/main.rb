@@ -162,7 +162,7 @@ class Main
     @out = []
     @history << "Deck was shuffled."
     deal_card(player)
-  end  
+  end
 
   def player_pass
     @history << "#{@player.name} passed."
