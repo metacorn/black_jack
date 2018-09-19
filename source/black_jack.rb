@@ -17,8 +17,8 @@ class BlackJack
 
   MENU = [
     ['add card', 'player_add_card'],
-    ['pass', 'player_pass'],
     ['show cards', 'show_cards'],
+    ['pass', 'player_pass'],
     ['exit', 'exit']
   ]
 
@@ -128,7 +128,7 @@ class BlackJack
     if @player.can_add?
       action_of(MENU)
     else
-      action_of(MENU[1..3])
+      action_of(MENU.values_at(1, 3))
     end
   end
 
@@ -210,6 +210,7 @@ class BlackJack
 
   def show_cards
     @history << "#{@player.name} showed cards."
+
     @dealer_card_visibility = true
     define_dealing
     check_game_winner
