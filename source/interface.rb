@@ -11,7 +11,7 @@ class Interface
 
   def show_hand(player)
     print "Cards:"
-    player.hand.each { |card| print " #{card[:suit]}#{card[:value]}" }
+    player.hand.each { |card| print " #{card.suit}#{card.value}" }
     puts "."
   end
 
@@ -40,9 +40,9 @@ class Interface
   end
 
   def show_history(history)
-    puts "ACTIVITY:" if !history.empty?
-    history.each { |action| puts action}
-    puts "\n" if !history.empty?
+    puts "ACTIVITY:"
+    history.list.each { |action| puts action}
+    puts "\n"
   end
 
   def show_menu(menu)

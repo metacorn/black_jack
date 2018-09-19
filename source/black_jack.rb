@@ -2,6 +2,8 @@ class BlackJack
   require_relative 'interface.rb'
   require_relative 'player.rb'
   require_relative 'deck.rb'
+  require_relative 'bank.rb'
+  require_relative 'history.rb'
 
   attr_reader :interface
 
@@ -35,6 +37,8 @@ class BlackJack
   def new_game
     @deck = Deck.new
     @out = []
+    @bank = Bank.new
+    @history = History.new
     initial_stacks
     dealing
   end
@@ -45,7 +49,7 @@ class BlackJack
   end
 
   def dealing
-    reset_history
+    clear_history
     hands_out
     banking
     getting_cards
@@ -54,8 +58,12 @@ class BlackJack
     ask_action
   end
 
-  def reset_history
-    @history = []
+  def clear_history
+    @history.clear
+  end
+
+  def logging(action_msg)
+    @history.write(action_msg)
   end
 
   def hands_out
@@ -64,9 +72,13 @@ class BlackJack
   end
 
   def banking
-    @bank = 0
     betting(@player)
     betting(@dealer)
+  end
+
+  def betting(player)
+    bet = @bank.get_bet(player)
+    logging("#{player.name} bet $#{bet}.")
   end
 
   def getting_cards
@@ -74,15 +86,9 @@ class BlackJack
     initial_getting_cards(@dealer)
   end
 
-  def betting(player)
-    player.make_bet
-    @bank += player.bet
-    @history << "#{player.name} bet $#{player.bet}."
-  end
-
   def initial_getting_cards(player)
     2.times { deal_card(player) }
-    @history << "#{player.name} got 2 cards."
+    logging("#{player.name} got 2 cards.")
   end
 
   def show_table
@@ -114,14 +120,14 @@ class BlackJack
   end
 
   def show_bank_block
-    if @bank != 0
-      @interface.show_bank(@bank)
+    if @bank.current_bank != 0
+      @interface.show_bank(@bank.current_bank)
       @interface.show_line
     end
   end
 
   def show_history_block
-    @interface.show_history(@history)
+    @interface.show_history(@history) if @history.not_empty?
   end
 
   def ask_action
@@ -149,7 +155,7 @@ class BlackJack
 
   def deal_card(player)
     if @deck.size != 0
-      player.get_card(@deck.cards[0])
+      player.get_card(@deck.content[0])
       @deck.remove_card
     else
       shuffle_out_deal_card(player)
@@ -160,12 +166,12 @@ class BlackJack
     @out.each { |card| @deck.add_card(card) }
     @deck.shuffle
     @out = []
-    @history << "Deck was shuffled."
+    logging("Deck was shuffled.")
     deal_card(player)
   end
 
   def player_pass
-    @history << "#{@player.name} passed."
+    logging("#{@player.name} passed.")
     dealer_action
     show_table
     ask_action
@@ -173,7 +179,7 @@ class BlackJack
 
   def player_add_card
     deal_card(@player)
-    @history << "#{@player.name} got a card."
+    logging("#{@player.name} got a card.")
     full_hands?
     dealer_action
     show_table
@@ -191,14 +197,14 @@ class BlackJack
   end
 
   def dealer_pass
-    @history << "Dealer passed."
+    logging("Dealer passed.")
     show_table
     ask_action
   end
 
   def dealer_add_card
     deal_card(@dealer)
-    @history << "Dealer got a card."
+    logging("Dealer got a card.")
     full_hands?
     show_table
     ask_action
@@ -209,8 +215,8 @@ class BlackJack
   end
 
   def show_cards
-    @history << "#{@player.name} showed cards."
-
+    logging("#{@player.name} showed cards.")
+    logging("#{@dealer.name} showed cards.")
     @dealer_card_visibility = true
     define_dealing
     check_game_winner
@@ -237,16 +243,15 @@ class BlackJack
   end
 
   def dealing_winner(player)
-    player.get_bank(@bank)
-    @history << "#{player.name} won $#{@bank}!"
-    @bank = 0
+    pot = @bank.current_bank
+    @bank.to_winner(player)
+    logging("#{player.name} won $#{pot}!")
   end
 
   def dealing_draw
-    @player.share_bank(@bank)
-    @dealer.share_bank(@bank)
-    @history << "Draw! Players shared the bank ($#{@bank})."
-    @bank = 0
+    pot = @bank.current_bank
+    @bank.to_share(@player, @dealer)
+    logging("Draw! Players shared the bank ($#{pot}).")
   end
 
   def check_game_winner
@@ -255,7 +260,7 @@ class BlackJack
   end
 
   def game_winner(player)
-    @history << "#{player.name} won a game!"
+    logging("#{player.name} won a game!")
     show_table
     ask_next_game
   end

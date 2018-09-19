@@ -1,34 +1,32 @@
 class Deck
+  require_relative 'card.rb'
 
-  attr_reader :cards
-
-  SUITS = ["♠", "♥", "♣", "♦"]
-  VALUES = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
+  attr_reader :content
 
   def initialize
-    @cards = []
-    SUITS.each do |suit|
-      VALUES.each do |value|
-        card = {value: value, suit: suit}
-        @cards << card
+    @content = []
+    Card::SUITS.each do |suit|
+      Card::VALUES.each do |value|
+        card = Card.new(suit, value)
+        @content << card
       end
     end
     shuffle
   end
 
   def size
-    @cards.size
+    @content.size
   end
 
   def shuffle
-    @cards.sort_by! { rand }
+    @content.sort_by! { rand }
   end
 
   def add_card(card)
-    @cards << card
+    @content << card
   end
 
   def remove_card
-    @cards.delete_at(0)
+    @content.delete_at(0)
   end
 end

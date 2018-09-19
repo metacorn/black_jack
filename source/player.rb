@@ -5,7 +5,6 @@ class Player
   def initialize(name)
     @name = name
     @hand = []
-    @bet = 10
   end
 
   def initial_stack
@@ -30,9 +29,9 @@ class Player
   def points_non_a
     points_non_a = 0
     @hand.each do |card|
-      case card[:value]
+      case card.value
       when "2", "3", "4", "5", "6", "7", "8", "9", "10"
-        points_non_a += card[:value].to_i
+        points_non_a += card.value.to_i
       when "J", "Q", "K"
         points_non_a += 10
       else
@@ -45,7 +44,7 @@ class Player
   def points_a(non_a_points)
     points_a = 0
     a_amount = 0
-    @hand.each { |card| a_amount += 1 if card[:value] == "A" }
+    @hand.each { |card| a_amount += 1 if card.value == "A" }
     if a_amount == 0
       points_a += 0
     elsif (non_a_points + a_amount * 11) <= 21
@@ -58,16 +57,12 @@ class Player
     points_a
   end
 
-  def make_bet
-    @stack -= @bet
+  def give_money(money)
+    @stack -= money
   end
 
-  def get_bank(bank)
-    @stack += bank
-  end
-
-  def share_bank(bank)
-    @stack += bank / 2
+  def get_money(money)
+    @stack += money
   end
 
   def can_add?
