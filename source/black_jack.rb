@@ -1,9 +1,10 @@
+require_relative 'interface.rb'
+require_relative 'player.rb'
+require_relative 'deck.rb'
+require_relative 'bank.rb'
+require_relative 'history.rb'
+
 class BlackJack
-  require_relative 'interface.rb'
-  require_relative 'player.rb'
-  require_relative 'deck.rb'
-  require_relative 'bank.rb'
-  require_relative 'history.rb'
 
   attr_reader :interface
 
@@ -16,23 +17,6 @@ class BlackJack
   end
 
   private
-
-  MENU = [
-    ['add card', 'player_add_card'],
-    ['show cards', 'show_cards'],
-    ['pass', 'player_pass'],
-    ['exit', 'exit']
-  ]
-
-  NEXT_DEALING = [
-    ['continue game', 'dealing'],
-    ['exit', 'exit']
-  ]
-
-  NEXT_GAME = [
-    ['new game', 'new_game'],
-    ['exit', 'exit']
-  ]
 
   def new_game
     @deck = Deck.new
@@ -67,8 +51,8 @@ class BlackJack
   end
 
   def hands_out
-    @dealer.hand_out(@out)
-    @player.hand_out(@out)
+    @dealer.hand.out(@out)
+    @player.hand.out(@out)
   end
 
   def banking
@@ -77,7 +61,8 @@ class BlackJack
   end
 
   def betting(player)
-    bet = @bank.get_bet(player)
+    bet = Bank::BET
+    @bank.get_bet(player)
     logging("#{player.name} bet $#{bet}.")
   end
 
@@ -131,31 +116,28 @@ class BlackJack
   end
 
   def ask_action
-    if @player.can_add?
-      action_of(MENU)
+    if @player.hand.addable?
+      action = @interface.show_menu(:add_card, :show_cards, :pass, :exit)
+      send(action)
     else
-      action_of(MENU.values_at(1, 3))
+      action = @interface.show_menu(:show_cards, :exit)
+      send(action)
     end
   end
 
   def ask_next_dealing
-    action_of(NEXT_DEALING)
+    action = @interface.show_menu(:continue_game, :exit)
+    send(action)
   end
 
   def ask_next_game
-    action_of(NEXT_GAME)
-  end
-
-  def action_of(menu)
-    item_index = @interface.show_menu(menu)
-    choise = menu[item_index - 1]
-    action = choise[1]
+    action = @interface.show_menu(:new_game, :exit)
     send(action)
   end
 
   def deal_card(player)
     if @deck.size != 0
-      player.get_card(@deck.content[0])
+      player.hand.take_card(@deck.top_card)
       @deck.remove_card
     else
       shuffle_out_deal_card(player)
@@ -187,9 +169,9 @@ class BlackJack
   end
 
   def dealer_action
-    if @dealer.check_points > 17
+    if @dealer.hand.points > 17
       dealer_pass
-    elsif @dealer.can_add?
+    elsif @dealer.hand.addable?
       dealer_add_card
     else
       dealer_pass
@@ -211,7 +193,7 @@ class BlackJack
   end
 
   def full_hands?
-    show_cards if @player.hand.size == 3 && @dealer.hand.size == 3
+    show_cards if @player.hand.full? && @dealer.hand.full?
   end
 
   def show_cards
@@ -225,8 +207,8 @@ class BlackJack
   end
 
   def define_dealing
-    dealer_points = @dealer.check_points
-    player_points = @player.check_points
+    dealer_points = @dealer.hand.points
+    player_points = @player.hand.points
     if (player_points > 21) && (dealer_points <= 21)
       dealing_winner(@dealer)
     elsif (player_points <= 21) && (dealer_points > 21)

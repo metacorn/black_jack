@@ -1,6 +1,6 @@
-class Deck
-  require_relative 'card.rb'
+require_relative 'card.rb'
 
+class Deck
   attr_reader :content
 
   def initialize
@@ -28,5 +28,9 @@ class Deck
 
   def remove_card
     @content.delete_at(0)
+  end
+
+  def top_card
+    @content[0]
   end
 end

@@ -1,6 +1,6 @@
 class Bank
   attr_reader :current_bank
-  BET = 10.freeze
+  BET = 10
 
   def initialize
     @current_bank = 0
@@ -9,7 +9,6 @@ class Bank
   def get_bet(player)
     player.give_money(BET)
     @current_bank += BET
-    BET
   end
 
   def to_winner(player)
